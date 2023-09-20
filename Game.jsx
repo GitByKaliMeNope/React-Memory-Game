@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import './game.css';
 import img0 from './img/Image0.png';
 import img1 from './img/Image1.png';
@@ -10,8 +10,6 @@ import img6 from './img/Image6.png';
 import img7 from './img/Image7.png';
 import img8 from './img/Image8.png';
 
-
-
 function shuffleArray(array) {
   // Fisher-Yates Shuffle Algorithm
   for (let i = array.length - 1; i > 0; i--) {
@@ -21,7 +19,7 @@ function shuffleArray(array) {
   return array;
 }
 
-class Game extends Component {
+class Game extends React.Component {
   constructor(props) {
     super(props);
 
@@ -29,45 +27,49 @@ class Game extends Component {
       cards: [],
       flipped: [],
       solved: [],
-      foundPairs: 0, // Anzahl der gefundenen Paare
+      score: 0,
+      foundPairs: 0,
+      gameStarted: false,
     };
   }
 
   componentDidMount() {
+    this.startGame();
+  }
+
+  startGame() {
     const symbols = [
       img0, img1, img2, img3, img4, img5, img6, img7, img8
     ];
     const shuffledCards = shuffleArray([...symbols, ...symbols]);
-    this.setState({ cards: shuffledCards });
-  }
 
-  componentDidUpdate(prevProps, prevState) {
-    const { flipped, cards, solved } = this.state;
-
-    if (flipped.length === 2) {
-      const [firstIndex, secondIndex] = flipped;
-      if (cards[firstIndex] === cards[secondIndex]) {
-        this.setState({ solved: [...solved, cards[firstIndex]] });
-      }
-      setTimeout(() => this.setState({ flipped: [] }), 1000);
-    }
+    this.setState({
+      cards: shuffledCards,
+      flipped: [],
+      solved: [],
+      foundPairs: 0,
+      score: 0,
+      gameStarted: true,
+    });
   }
+  
+
   handleCardClick(index) {
     const { flipped, cards, solved } = this.state;
-  
+
     if (flipped.length < 2 && !flipped.includes(index) && !solved.includes(cards[index])) {
       const newFlipped = [...flipped, index];
       let newPairs = this.state.foundPairs;
-  
+
       if (flipped.length === 1) {
         const [firstIndex] = flipped;
         if (cards[firstIndex] === cards[index]) {
           newPairs += 1;
         }
       }
-  
+
       this.setState({ flipped: newFlipped, foundPairs: newPairs });
-  
+
       if (flipped.length === 1) {
         setTimeout(() => this.setState({ flipped: [] }), 1000);
       }
@@ -91,15 +93,17 @@ class Game extends Component {
       <div className="App">
         <div className="cover-page">
           <h1>Memory Game</h1>
-          <button onClick={this.handleStartGame}>Start Game</button>
+          {!this.state.gameStarted && <button onClick={() => this.startGame()}>Start Game</button>}
         </div>
+        <h2>Found Pairs: {this.state.foundPairs}</h2>
+        <h2>Score: {this.state.score}</h2>
         {this.isGameComplete() && (
           <div className="game-complete">
             Game Complete!
-            <button onClick={this.handleWin}>Win</button>
+            <button onClick={() => this.handleWin()}>Win</button>
           </div>
         )}
-        
+
         <div className="card-container">
           {cards.map((card, index) => (
             <div
@@ -115,9 +119,7 @@ class Game extends Component {
             </div>
           ))}
         </div>
-       
       </div>
-
     );
   }
 }
